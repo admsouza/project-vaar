@@ -1,0 +1,42 @@
+{
+  "guide": "https://www.gov.br/mec/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-intergovernamental-fundeb/arquivos/guia-de-orientacao-2026.pdf/view",
+  "norm": "https://mecnormas.mec.gov.br/pesquisa/detalhar/12566",
+  "inep": "https://www.gov.br/fnde/pt-br/acesso-a-informacao/acoes-e-programas/financiamento/fundeb/legislacao/2026/resolucao-cif-no-25_cond-ii-e-iii-e-indicadores.pdf/view",
+  "simec": "https://simec.mec.gov.br/",
+  "deadline": "O prazo geral de registro encerrou em 15/09/2026 (art. 6º da Resolução CIF nº 24/2026, com redação da nº 28/2026). A data de 31/08/2026 das páginas 7 e 27 do PDF foi substituída pela norma posterior.",
+  "diligence": "Se houver diligência, consulte motivo, detalhamento, orientação e prazo na aba Situação. Ajuste a condicionalidade indicada na aba Registro. A equipe finaliza o preenchimento e o secretário valida e reenvia. O art. 7º prevê 15 dias, contados do envio da comunicação ou do fim do prazo de registro, o que ocorrer depois. Sem atendimento no prazo, a rede é inabilitada na respectiva condicionalidade.",
+  "workflow": "No Simec, a equipe técnica preenche a aba Registro, confere os avisos na aba Envio e finaliza o preenchimento. O secretário de Educação revisa, pode devolver para ajuste ou confirmar o Termo de Veracidade e enviar ao MEC. Acompanhe a análise na aba Situação.",
+  "external": [
+    { "title": "II e III · Cálculo do Inep", "text": "O Inep calcula participação nas avaliações, redução das desigualdades e os indicadores. A prefeitura acompanha a publicação oficial." },
+    { "title": "IV · Comprovação pelo estado", "text": "O estado comprova a existência e a execução do regime de colaboração e do ICMS Educação. A situação estadual se aplica aos seus municípios." }
+  ],
+  "sections": [
+    {
+      "id": "I",
+      "title": "I · Seleção de gestores escolares",
+      "pages": "pp. 9–14 e 50–56",
+      "reuseLabel": "O Simec permite confirmar os dados anteriores da I e a rede conferiu que continuam válidos",
+      "reuseNote": "O aproveitamento depende da habilitação anterior e da conferência no Simec. Confirme as informações elegíveis e responda às novas perguntas aplicáveis.",
+      "items": [
+        {"id":"norma","record":"full","text":"Ato normativo local publicado que define a seleção por mérito e desempenho, em PDF."},
+        {"id":"edital","record":"full","text":"Edital publicado ou documento equivalente que comprove processo seletivo concluído até a data do envio, em PDF."},
+        {"id":"totais","record":"full","text":"Total de gestores em atuação e total selecionado pelos critérios exigidos. Confira a maioria e compare os números com o Censo Escolar 2025. Divergências podem gerar pedido de esclarecimento."},
+        {"id":"validade","record":"full","text":"Conferência dos PDFs oficiais: publicação anterior ao envio, identificação do ente, assinatura e elementos de autenticação aplicáveis."},
+        {"id":"confirmacao","record":"reuse","text":"Dados elegíveis confirmados e novas perguntas aplicáveis revisadas no Simec."}
+      ]
+    },
+    {
+      "id": "V",
+      "title": "V · Referenciais curriculares",
+      "pages": "pp. 19–25 e 60–63",
+      "reuseLabel": "O Simec permite confirmar a documentação anterior da BNCC geral",
+      "reuseNote": "A confirmação anterior se aplica à BNCC geral. O referencial de Computação e seu documento comprobatório continuam no checklist.",
+      "items": [
+        {"id":"bncc","record":"full","text":"Referencial curricular alinhado à BNCC geral e ato de aprovação no sistema de ensino, em PDF. Confira se é currículo próprio ou adesão ao estadual."},
+        {"id":"confirmacao","record":"reuse","text":"Documentação anterior da BNCC geral confirmada conforme a opção disponível no Simec."},
+        {"id":"computacao","text":"Referencial alinhado à Computação na Educação Básica, complemento à BNCC, próprio ou estadual por adesão, em PDF."},
+        {"id":"aprovacao","text":"Documento que comprove a aprovação do referencial de Computação no sistema de ensino ou a adesão estadual, conforme a opção da rede. Confira as datas e as perguntas sobre educação digital e midiática no Simec."}
+      ]
+    }
+  ]
+}
