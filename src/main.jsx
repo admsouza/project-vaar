@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
-  ArrowLeft, ArrowUpRight, BadgeCheck, BookOpen, Building2, CalendarDays, Check, ChevronDown,
+  ArrowLeft, ArrowUpRight, BadgeCheck, BookOpen, Building2, Check, ChevronDown,
   ChevronRight, CircleAlert, CircleHelp, ClipboardList, FileText, FolderOpen, History,
   LayoutDashboard, MapPin, Plus, Printer, ScanText, Search, ShieldCheck, X,
 } from 'lucide-react';
 import { conditions, initialRecords, municipalities, sources } from './data.js';
 import { matchesCondition, matchesSearch } from './evidence.js';
+import { Help, Modal } from './Help.jsx';
 import { VaarCycle } from './VaarCycle.jsx';
 import './styles.css';
 
@@ -54,23 +55,7 @@ function Source({ source, suffix }) {
   return <a className="source" href={source.url} target="_blank" rel="noreferrer">{source.label}{suffix}<ArrowUpRight size={14} aria-hidden="true" /></a>;
 }
 
-function Modal({ title, onClose, children }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const dialog = ref.current;
-    dialog.showModal();
-    return () => dialog.close();
-  }, []);
-  return <dialog ref={ref} className="modal" onCancel={event => { event.preventDefault(); onClose(); }} aria-labelledby="modal-title">
-    <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-4">
-      <h2 id="modal-title">{title}</h2>
-      <button className="icon-button" type="button" onClick={onClose} aria-label="Fechar"><X size={20} /></button>
-    </div>
-    {children}
-  </dialog>;
-}
-
-function EvidenceForm({ onClose, onSave, editor, municipality }) {
+function EvidenceForm({ onClose, onSave, editor, municipality, year }) {
   const record = editor.id ? editor : null;
   const [form, setForm] = useState({
     ...blank,
@@ -105,7 +90,7 @@ function EvidenceForm({ onClose, onSave, editor, municipality }) {
     setMessage('Abrindo o PDF…');
     try {
       if (example) {
-        const response = await fetch(`${import.meta.env.BASE_URL}comprovante-ficticio.pdf`, { signal });
+        const response = await fetch(import.meta.env.BASE_URL + 'comprovante-ficticio.pdf', { signal });
         if (!response.ok) throw new Error('Exemplo indisponível');
         file = new File([await response.blob()], 'comprovante-ficticio.pdf', { type: 'application/pdf' });
       }
@@ -156,10 +141,10 @@ function EvidenceForm({ onClose, onSave, editor, municipality }) {
         .filter(([name, suggestion]) => confirmed[name] === suggestion.value));
       onSave(confirmed);
     }}>
-      <p className="muted">{municipality} · PB · Exercício 2026</p>
+      <p className="muted">{municipality} · PB · VAAR {year}</p>
+      {editor.requirement && <p className="evidence-tag">{editor.condition} · {editor.requirement.label}</p>}
       <div className="reader-panel space-y-2">
-        <h3 className="flex items-center gap-2 font-semibold"><ScanText size={19} aria-hidden="true" />Leitura de comprovante</h3>
-        <p className="muted">Use um PDF fictício ou anonimizado de até 10 MB e 10 páginas. A leitura roda neste navegador.</p>
+        <div className="flex items-center gap-2"><h3 className="font-semibold">Ler comprovante</h3><Help title="Como funciona a leitura do PDF"><p>Use um PDF fictício ou anonimizado de até 10 MB e 10 páginas. A leitura roda neste navegador.</p><p>O registro guarda os campos, o nome do PDF e os trechos confirmados. Guarde o arquivo original separadamente.</p></Help></div>
         <div className="flex flex-wrap gap-2">
           <label className="field min-w-0 flex-1">Selecionar PDF
             <input type="file" accept="application/pdf,.pdf" disabled={reading} onChange={event => {
@@ -173,7 +158,7 @@ function EvidenceForm({ onClose, onSave, editor, municipality }) {
         {form.file && <p className="muted break-all">Arquivo selecionado: {form.file}</p>}
         <p className="muted" role="status">{message}</p>
       </div>
-      {record ? <p className="muted">Condicionalidade {form.condition} · {conditions.find(item => item.id === form.condition).name}{sourceHint('condition')}</p> : <label className="field">Condicionalidade<select required {...field('condition')}>
+      {record || editor.requirement ? <p className="muted">Condicionalidade {form.condition} · {conditions.find(item => item.id === form.condition).name}{sourceHint('condition')}</p> : <label className="field">Condicionalidade<select required {...field('condition')}>
         <option value="">Selecione uma condicionalidade</option>
         {conditions.map(item => <option key={item.id} value={item.id}>{item.id} · {item.name}</option>)}
       </select>{sourceHint('condition')}
@@ -189,7 +174,6 @@ function EvidenceForm({ onClose, onSave, editor, municipality }) {
       </div>
       <label className="field">Situação<select {...field('state')}><option>Pendente</option><option>Registrada</option><option>Revisada</option></select></label>
       <label className="field">Observação<textarea rows={2} maxLength={600} {...field('notes')} /></label>
-      <p className="muted">O registro de teste guarda os campos, o nome do PDF e os trechos confirmados neste navegador.</p>
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" className="button secondary" onClick={onClose}>Cancelar</button>
         <button type="submit" className="button primary" disabled={reading}>Salvar evidência</button>
@@ -212,7 +196,7 @@ function ConditionList({ municipality, records, openCondition }) {
   const matches = conditions.filter(condition => matchesCondition(query, condition));
   return <section className="panel table-panel" aria-labelledby="condition-list-heading">
     <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-6">
-      <div><h2 id="condition-list-heading">Condicionalidades</h2><p className="muted mt-1">Situação da rede na publicação do FNDE de 2026.</p></div>
+      <div className="flex items-center gap-2"><h2 id="condition-list-heading">Exigências do VAAR 2026</h2><Help title="Sobre a situação oficial"><p>Situação da rede na publicação do FNDE de 2026.</p><Source source={sources.law} /><br /><Source source={sources.lista} /></Help></div>
       <span className="counter">{conditions.length - municipality.unmet.length} de 5 atendidas</span>
     </div>
     <div className="px-5 pb-4 sm:px-6">
@@ -228,14 +212,13 @@ function ConditionList({ municipality, records, openCondition }) {
       return <button type="button" className="condition-row" key={condition.id} onClick={() => openCondition(condition.id)} aria-label={`Abrir detalhe de ${condition.name}`}>
         <span className="flex min-w-0 items-center gap-3">
           <span className="roman">{condition.id}</span>
-          <span className="min-w-0"><strong className="block">{condition.name}</strong><span className="muted mt-0.5 block">{condition.description}</span></span>
+          <span className="min-w-0"><strong className="block">{condition.name}</strong></span>
         </span>
         <Status positive={met}>{met ? 'Atendida' : 'Não atendida'}</Status>
         <span className="muted">{count} {count === 1 ? 'registro' : 'registros'}</span>
         <ChevronRight className="row-chevron" size={18} aria-hidden="true" />
       </button>;
     })}
-    <div className="flex flex-wrap gap-x-4 gap-y-2 px-5 py-4 sm:px-6"><Source source={sources.law} /><Source source={sources.lista} /></div>
   </section>;
 }
 
@@ -247,15 +230,25 @@ function EvidenceList({ records, onEdit, showHistory }) {
         <div className="min-w-0">
           <h3 className="break-words font-semibold">{record.title}</h3>
           <p className="muted mt-1 break-words">{record.condition} · {record.owner}{record.deadline ? ` · Prazo ${record.deadline.split('-').reverse().join('/')}` : ''}</p>
-          {record.notes && <p className="muted mt-1 break-words">{record.notes}</p>}
-          {record.documentDate && <p className="muted mt-1">Data do documento: {record.documentDate.split('-').reverse().join('/')}</p>}
+          {record.requirement && <p className="muted mt-1">{record.requirement.label}</p>}
           {record.protocol && <p className="muted mt-1 break-words">Protocolo: {record.protocol}</p>}
-          {record.file && <p className="muted mt-1 break-all">Arquivo informado: {record.file}</p>}
-          {Object.keys(record.suggestions ?? {}).length > 0 && <details className="mt-2">
-            <summary className="muted cursor-pointer">Trechos usados no cadastro</summary>
-            <ul className="mt-1 space-y-1">{Object.entries(record.suggestions).map(([field, { page, excerpt }]) =>
-              <li className="muted break-words" key={field}>{evidenceFields[field]} · Pág. {page} · “{excerpt}”</li>)}</ul>
-          </details>}
+          {(record.notes || record.documentDate || record.file || Object.keys(record.suggestions ?? {}).length > 0) && <div className="flex items-center gap-2">
+            <span className="muted">Detalhes do registro</span>
+            <Help title={`Detalhes de ${record.title}`}>
+              {record.notes && <p className="break-words">{record.notes}</p>}
+              {record.documentDate && <p>Data do documento: {record.documentDate.split('-').reverse().join('/')}</p>}
+              {record.file && <p className="break-all">Arquivo informado: {record.file}</p>}
+              {Object.keys(record.suggestions ?? {}).length > 0 && <ul className="space-y-2">{Object.entries(record.suggestions).map(([field, { page, excerpt }]) =>
+                <li className="break-words" key={field}>{evidenceFields[field]} · Pág. {page} · “{excerpt}”</li>)}</ul>}
+            </Help>
+          </div>}
+          <div className="print-details">
+            {record.notes && <p>{record.notes}</p>}
+            {record.documentDate && <p>Data do documento: {record.documentDate.split('-').reverse().join('/')}</p>}
+            {record.file && <p>Arquivo informado: {record.file}</p>}
+            {Object.entries(record.suggestions ?? {}).map(([field, { page, excerpt }]) =>
+              <p key={field}>{evidenceFields[field]} · Pág. {page} · “{excerpt}”</p>)}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Status positive={record.history.at(-1).state === 'Revisada'}>{record.history.at(-1).state}</Status>
@@ -274,7 +267,7 @@ function EvidenceHistory({ records, onEdit }) {
   const matches = records.filter(record => matchesSearch(query, [
     record.title, record.owner, record.file, record.protocol, record.notes, record.documentDate,
     record.documentDate?.split('-').reverse().join('/'),
-    record.condition, conditions.find(item => item.id === record.condition)?.name,
+    record.requirement?.label, record.condition, conditions.find(item => item.id === record.condition)?.name,
     ...record.history.map(entry => entry.state),
   ]));
   return <section className="panel mt-5">
@@ -295,10 +288,13 @@ function App() {
   const [from, setFrom] = useState('overview');
   const [saved, setSaved] = useState(loadRecords);
   const [editor, setEditor] = useState(null);
+  const [dossierYear, setDossierYear] = useState(2026);
   const [showSources, setShowSources] = useState(false);
   const [notice, setNotice] = useState('');
   const municipality = municipalities[code];
   const records = saved[code] ?? initialRecords(code);
+  const cycleRecords = saved[code + ':2027'] ?? [];
+  const editorYear = editor?.year ?? 2026;
   const condition = conditions.find(item => item.id === selected);
   const { eligible } = municipality;
   const value = municipality.value === null ? 'Sem linha publicada nesta edição' : money.format(municipality.value);
@@ -324,18 +320,27 @@ function App() {
     window.scrollTo(0, 0);
   }
 
+  function openDossier(year) {
+    setDossierYear(year);
+    navigate('dossier');
+  }
+
   function saveEvidence(form) {
     const entry = { state: form.state, at: new Date().toISOString() };
     const { condition, title, owner, deadline, documentDate, protocol, notes, file, suggestions } = form;
     const record = {
       id: editor.id ?? crypto.randomUUID(),
       condition, title, owner, deadline, documentDate, protocol, notes, file, suggestions,
+      requirement: editor.requirement,
       history: [...(editor.history ?? []), entry],
     };
-    const updated = editor.id ? records.map(item => item.id === editor.id ? record : item) : [...records, record];
-    const next = { ...saved, [code]: updated };
+    const current = editorYear === 2027 ? cycleRecords : records;
+    const updated = editor.id ? current.map(item => item.id === editor.id ? record : item) : [...current, record];
+    const key = editorYear === 2027 ? code + ':2027' : code;
+    const next = { ...saved, [key]: updated };
     setSaved(next);
     setEditor(null);
+    if (editorYear === 2027 && !editor.id) openDossier(2027);
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
       setNotice('Evidência salva no cenário de teste.');
@@ -366,63 +371,64 @@ function App() {
       <main className="content">
         {notice && <p role="status" className="notice"><Check size={18} />{notice}<button type="button" className="ml-auto" aria-label="Dispensar mensagem" onClick={() => setNotice('')}><X size={17} /></button></p>}
         {view === 'overview' && <>
-          <section className="hero" aria-labelledby="main-title">
-            <div className="hero-pattern" aria-hidden="true"><span /><span /><span /><ShieldCheck size={103} strokeWidth={1.05} /></div>
-            <div className="relative">
-              <div className="hero-kicker"><Building2 size={16} aria-hidden="true" />FINANCIAMENTO DA EDUCAÇÃO</div>
-              <h1 id="main-title">Diagnóstico do VAAR</h1>
-              <p>Consulte o resultado publicado para o VAAR 2026 e organize suas evidências.</p>
+          <div className="page-heading"><h1>Gestão do VAAR</h1></div>
+          <section className="panel overview-actions" aria-label="Próxima ação">
+            <MunicipalitySelect code={code} onChange={changeMunicipality} />
+            <div className="overview-next">
+              <div><h2>Preparar o VAAR 2027</h2><p className="muted">Confira as exigências e registre os comprovantes.</p></div>
+              <button type="button" className="button primary" onClick={() => navigate('cycle')}>Ver o que falta <ChevronRight size={17} aria-hidden="true" /></button>
             </div>
           </section>
-          <section className="panel scope-panel" aria-label="Recorte da consulta">
-            <MunicipalitySelect code={code} onChange={changeMunicipality} />
-            <label className="field year-field">Exercício
-              <span className="select-wrap"><CalendarDays size={17} /><select defaultValue="2026"><option>2026</option></select><ChevronDown size={16} /></span>
-            </label>
-            <span className="data-context"><span>Publicações do FNDE</span><small>Consulta em 23/11/2026</small></span>
-            <button type="button" className="button primary" onClick={() => setEditor({ condition: '' })}><ScanText size={18} aria-hidden="true" />Ler comprovante</button>
-          </section>
-          <div className="panel mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
-            <div><h2>Comprovação para o VAAR 2027</h2><p className="muted">Confira documentos, responsáveis e orientações do Simec.</p></div>
-            <button type="button" className="button secondary" onClick={() => navigate('cycle')}>Abrir preparação 2027</button>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2"><h2>Resultado oficial · 2026</h2><Help title="Fontes do resultado de 2026"><p>Consulta em 23/11/2026.</p><Source source={sources.lista} /><br /><Source source={sources.p11} /></Help></div>
+            <button type="button" className="button secondary" onClick={() => setEditor({ condition: '' })}><ScanText size={17} aria-hidden="true" />Ler comprovante de 2026</button>
           </div>
           <div className="summary-grid">
             <section className="panel metric"><span className="metric-icon teal"><ShieldCheck size={22} /></span><div><h2>Habilitação</h2><strong>{eligible ? 'Habilitada' : 'Não habilitada'}</strong><p>{conditions.length - municipality.unmet.length} de 5 condicionalidades atendidas</p></div></section>
             <section className="panel metric"><span className="metric-icon amber"><BadgeCheck size={22} /></span><div><h2>Benefício</h2><strong>{municipality.benefited ? 'Beneficiária' : 'Não beneficiária'}</strong><p>Situação na lista oficial do FNDE</p></div></section>
             <section className="panel metric"><span className="metric-icon blue"><FileText size={22} /></span><div><h2>Valor previsto</h2><strong className={municipality.value === null ? 'missing-value' : ''}>{value}</strong><p>FNDE · P11, 3ª publicação</p></div></section>
           </div>
-          {municipality.reason && <p className="reason"><CircleAlert size={18} aria-hidden="true" /><span><strong>Motivo informado pelo FNDE.</strong> {municipality.reason}</span></p>}
+          {municipality.reason && <div className="mb-4 flex items-center gap-2"><span className="muted">Motivo informado pelo FNDE</span><Help title="Ler motivo informado pelo FNDE"><p>{municipality.reason}</p><Source source={sources.lista} /></Help></div>}
           <ConditionList municipality={municipality} records={records} openCondition={openCondition} />
         </>}
-        {view === 'cycle' && <VaarCycle key={code} code={code} municipality={municipality.name} selector={<MunicipalitySelect code={code} onChange={changeMunicipality} />} />}
+        {view === 'cycle' && <VaarCycle key={code} code={code} selector={<MunicipalitySelect code={code} onChange={changeMunicipality} />} records={cycleRecords} onRegister={(id, requirement) => setEditor({ condition: id, year: 2027, requirement })} onDossier={() => openDossier(2027)} />}
         {view === 'conditions' && !condition && <>
           <div className="page-heading"><p>{municipality.name} · PB / Exercício 2026</p><h1>Condicionalidades da rede</h1></div>
           <ConditionList municipality={municipality} records={records} openCondition={openCondition} />
         </>}
         {view === 'conditions' && condition && <>
           <button type="button" className="back" onClick={() => navigate(from)}><ArrowLeft size={17} />Voltar</button>
-          <div className="page-heading"><p>{municipality.name} · PB / Exercício 2026</p><h1>{condition.id} · {condition.name}</h1><p>{condition.description}</p></div>
+          <div className="page-heading"><p>{municipality.name} · PB / Exercício 2026</p><div className="flex items-center gap-3"><h1>{condition.id} · {condition.name}</h1><Help title="Detalhes da exigência"><p>{condition.description}</p><p>Art. 14, § 1º, inciso {condition.id}. Exemplo de evidência: {condition.evidence}</p><Source source={sources.law} /></Help></div></div>
           <button type="button" className="button secondary mb-4" onClick={() => navigate('cycle')}>Consultar regras do ciclo 2026/2027</button>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <section className="panel p-5 sm:p-6"><h2 className="flex items-center gap-2"><BookOpen size={20} />Fundamento</h2><p className="my-3 muted">Art. 14, § 1º, inciso {condition.id}. Exemplo de evidência para o teste: {condition.evidence}</p><Source source={sources.law} /></section>
+          <div>
             <section className="panel p-5 sm:p-6"><h2>Situação oficial</h2><div className="my-3"><Status positive={!municipality.unmet.includes(condition.id)}>{municipality.unmet.includes(condition.id) ? 'Não atendida' : 'Atendida'}</Status></div><Source source={sources.lista} /></section>
           </div>
           <section className="panel mt-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-5 sm:p-6"><div><h2>Evidências de teste</h2><p className="muted mt-1">Use o leitor de PDF ou registre os campos manualmente.</p></div><button type="button" className="button primary" onClick={() => setEditor({ condition: condition.id })}><Plus size={18} />Registrar evidência</button></div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-5 sm:p-6"><div><h2>Evidências de teste</h2></div><button type="button" className="button primary" onClick={() => setEditor({ condition: condition.id })}><Plus size={18} />Registrar evidência</button></div>
             <EvidenceList records={records.filter(item => item.condition === condition.id)} showHistory onEdit={setEditor} />
           </section>
         </>}
         {view === 'dossier' && <>
-          <div className="page-heading flex flex-wrap items-end justify-between gap-4"><div><p>{municipality.name} · PB / Exercício 2026</p><h1>Dossiê de acompanhamento</h1><p>Prévia com situação oficial, evidências simuladas e histórico.</p></div><button type="button" className="button primary print-hide" onClick={() => window.print()}><Printer size={18} />Imprimir / salvar PDF</button></div>
-          <section className="panel p-5 sm:p-6"><h2>Dados oficiais</h2><dl className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div className="page-heading flex flex-wrap items-end justify-between gap-4"><div><p>{municipality.name} · PB</p><h1>Dossiê</h1></div><button type="button" className="button primary print-hide" onClick={() => window.print()}><Printer size={18} />Imprimir / salvar PDF</button></div>
+          <div className="panel dossier-filters print-hide">
+            <MunicipalitySelect code={code} onChange={changeMunicipality} />
+            <label className="field">Exercício<select value={dossierYear} onChange={event => setDossierYear(Number(event.target.value))}>
+              <option value={2026}>VAAR 2026</option><option value={2027}>VAAR 2027</option>
+            </select></label>
+            <Help title="Sobre o dossiê"><p>Os registros de teste são guardados neste navegador, por município e exercício. Use apenas PDFs fictícios ou anonimizados.</p></Help>
+          </div>
+          <h2 className="print-details">VAAR {dossierYear}</h2>
+          {dossierYear === 2026 && <>
+          <section className="panel p-5 sm:p-6"><h2>Dados oficiais de 2026</h2><dl className="mt-4 grid gap-4 sm:grid-cols-3">
             <div><dt className="muted">Habilitação</dt><dd className="font-semibold">{eligible ? 'Habilitada' : 'Não habilitada'}</dd></div><div><dt className="muted">Benefício</dt><dd className="font-semibold">{municipality.benefited ? 'Beneficiária' : 'Não beneficiária'}</dd></div><div><dt className="muted">Valor previsto</dt><dd className="font-semibold">{value}</dd></div>
           </dl><div className="mt-4 flex flex-wrap gap-x-5 gap-y-2"><Source source={sources.lista} /><Source source={sources.p11} /></div></section>
           <section className="panel mt-5 p-5 sm:p-6"><h2>Evidências a completar</h2><p className="muted mt-1">Condicionalidades sem registro demonstrativo preenchido.</p>{missing.length ? <ul className="mt-3 flex flex-wrap gap-2">{missing.map(item => <li key={item.id}><button type="button" className="counter hover:bg-slate-200" onClick={() => openCondition(item.id)}>{item.id} · {item.name}</button></li>)}</ul> : <p className="mt-3"><Status positive>Todas as condicionalidades têm registro de teste</Status></p>}</section>
-          <EvidenceHistory key={code} records={records} onEdit={setEditor} />
+          </>}
+          <EvidenceHistory key={code + ':' + dossierYear} records={dossierYear === 2027 ? cycleRecords : records} onEdit={record => setEditor({ ...record, year: dossierYear })} />
         </>}
       </main>
     </div>
-    {editor && <EvidenceForm editor={editor} municipality={municipality.name} onClose={() => setEditor(null)} onSave={saveEvidence} />}
+    {editor && <EvidenceForm editor={editor} municipality={municipality.name} year={editorYear} onClose={() => setEditor(null)} onSave={saveEvidence} />}
     {showSources && <Modal title="Fontes e dados de teste" onClose={() => setShowSources(false)}>
       <div className="space-y-4 px-6 py-5"><p>Os dados de habilitação e benefício são do exercício de 2026. Use documentos fictícios ou anonimizados. Os registros de teste e os trechos confirmados ficam neste navegador.</p>
         <ul className="space-y-3">{Object.values(sources).map(source => <li key={source.url}><Source source={source} /></li>)}</ul>

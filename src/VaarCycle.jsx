@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ArrowUpRight, FilePlus2, FolderOpen } from 'lucide-react';
+import { Help } from './Help.jsx';
 import cycle from './vaarCycle.json';
 
 const storageKey = 'gov-app-vaar-cycle-2026-2027';
@@ -15,7 +17,7 @@ function OfficialLink({ href, children }) {
   return <a className="source underline" href={href} target="_blank" rel="noreferrer">{children}</a>;
 }
 
-export function VaarCycle({ code, municipality, selector }) {
+export function VaarCycle({ code, selector, records, onRegister, onDossier }) {
   const [checklist, setChecklist] = useState(() => loadChecklist(code));
   const [storageError, setStorageError] = useState(false);
 
@@ -31,61 +33,85 @@ export function VaarCycle({ code, municipality, selector }) {
   }
 
   return <>
-    <div className="page-heading">
-      <p>VAAR · Ciclo 2026/2027</p>
-      <h1>Preparação para o Simec</h1>
-      <p>Comprovação em 2026 para a complementação de 2027. O diagnóstico do Gov App mostra a publicação do VAAR 2026 em sua própria tela.</p>
+    <div className="page-heading flex flex-wrap items-end justify-between gap-3">
+      <div><p>Ciclo 2026/2027</p><h1>Preparação para o Simec</h1></div>
+      <button type="button" className="button secondary" onClick={onDossier}><FolderOpen size={17} aria-hidden="true" />Abrir dossiê 2027</button>
     </div>
-    <div className="scope-panel panel mb-4">{selector}</div>
-    <section className="panel space-y-3 p-5 sm:p-6" aria-label="Prazo e fontes">
-      <h2>Prazo geral de registro</h2>
-      <p>{cycle.deadline}</p>
-      <div className="flex flex-wrap gap-x-5 gap-y-2">
-        <OfficialLink href={cycle.guide}>Guia do MEC 2026/2027</OfficialLink>
-        <OfficialLink href={cycle.norm}>Resolução CIF nº 24/2026 atualizada</OfficialLink>
-        <OfficialLink href={cycle.simec}>Abrir Simec</OfficialLink>
+    <section className="panel overview-actions" aria-label="Município e prazo">
+      {selector}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="counter">Prazo geral · 15/09/2026</span>
+        <Help title="Entenda o prazo de registro" preview={cycle.deadline}>
+          <p>{cycle.deadline}</p>
+          <OfficialLink href={cycle.guide}>Guia do MEC 2026/2027</OfficialLink><br />
+          <OfficialLink href={cycle.norm}>Resolução CIF nº 24/2026 atualizada</OfficialLink>
+        </Help>
       </div>
+      <OfficialLink href={cycle.simec}>Abrir Simec <ArrowUpRight size={15} aria-hidden="true" /></OfficialLink>
     </section>
-    <section className="mt-5" aria-labelledby="checklist-title">
-      <h2 id="checklist-title">Conferência interna de {municipality}</h2>
-      <p className="muted mt-1">Marque os itens que a equipe conferiu. As marcações ficam neste navegador e servem para organizar o trabalho. O envio e a análise acontecem no Simec.</p>
+    <section className="mt-6" aria-labelledby="checklist-title">
+      <div className="flex items-center gap-2">
+        <h2 id="checklist-title">O que falta conferir</h2>
+        <Help title="Como usar o checklist">
+          <p>Marque os itens que a equipe conferiu. As marcações ficam neste navegador. O envio e a análise acontecem no Simec.</p>
+          <p>Registrar um comprovante mantém o item disponível para conferência manual.</p>
+        </Help>
+      </div>
       {storageError && <p role="status">Não foi possível salvar as marcações neste navegador. Elas valem para esta sessão.</p>}
-      <div className="mt-3 grid gap-4 lg:grid-cols-2">
+      <div className="mt-3 grid gap-4 xl:grid-cols-2">
         {cycle.sections.map(section => {
           const modeKey = section.id + ':reuse';
           const reuse = Boolean(checklist[modeKey]);
           const items = section.items.filter(item => !item.record || item.record === (reuse ? 'reuse' : 'full'));
           const checkedCount = items.filter(item => checklist[section.id + ':' + item.id]).length;
-          return <fieldset className="panel space-y-3 p-5 sm:p-6" key={section.id}>
-            <legend className="px-2 font-semibold">{section.title}</legend>
-            <p className="muted"><OfficialLink href={cycle.guide}>Guia do MEC, {section.pages}</OfficialLink></p>
-            <label className="flex items-start gap-2 rounded-md bg-slate-50 p-3">
-              <input className="mt-1 size-4 shrink-0" type="checkbox" checked={reuse} onChange={event => update(modeKey, event.target.checked)} />
-              <span>{section.reuseLabel}</span>
-            </label>
-            <p className="muted">{section.reuseNote}</p>
-            <p className="font-semibold" aria-live="polite">{checkedCount} de {items.length} itens conferidos</p>
-            {items.map(item => {
-              const key = section.id + ':' + item.id;
-              return <label className="flex items-start gap-2 border-t border-slate-200 pt-3" key={key}>
-                <input className="mt-1 size-4 shrink-0" type="checkbox" checked={Boolean(checklist[key])} onChange={event => update(key, event.target.checked)} />
-                <span>{item.text}</span>
-              </label>;
-            })}
-          </fieldset>;
+          const nextItem = items.find(item => !checklist[section.id + ':' + item.id]);
+          return <section className="panel checklist-card" aria-label={section.title} key={section.id}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="font-semibold">{section.title}</h3>
+              <span className="counter" aria-live="polite">{checkedCount} de {items.length} conferidos</span>
+            </div>
+            <div className="reuse-row">
+              <label className="flex items-center gap-2"><input type="checkbox" checked={reuse} onChange={event => update(modeKey, event.target.checked)} />Reaproveitar no Simec</label>
+              <Help title={`Reaproveitamento · ${section.id}`} preview={section.reuseNote}>
+                <p>{section.reuseLabel}.</p><p>{section.reuseNote}</p>
+                <OfficialLink href={cycle.guide}>Guia do MEC, {section.pages}</OfficialLink>
+              </Help>
+            </div>
+            <ul>
+              {items.map(item => {
+                const key = section.id + ':' + item.id;
+                const hasEvidence = records.some(record => record.requirement?.key === key);
+                return <li className="checklist-row" key={key}>
+                  <label><input type="checkbox" checked={Boolean(checklist[key])} onChange={event => update(key, event.target.checked)} />{item.label}</label>
+                  {hasEvidence && <span className="evidence-tag">Comprovante salvo</span>}
+                  <Help title={`Orientação · ${item.label}`} preview={item.text}>
+                    <p>{item.text}</p><OfficialLink href={cycle.guide}>Guia do MEC, {section.pages}</OfficialLink>
+                  </Help>
+                  <button type="button" className="checklist-register" aria-label={`Registrar comprovante · ${item.label}`} onClick={() => onRegister(section.id, { key, label: item.label })}>
+                    <FilePlus2 size={17} aria-hidden="true" /><span>Registrar</span>
+                  </button>
+                </li>;
+              })}
+            </ul>
+            {nextItem && <p className="checklist-next">Próximo item: <strong>{nextItem.label}</strong></p>}
+            {!nextItem && <p className="checklist-next">Todos os itens deste checklist foram conferidos.</p>}
+          </section>;
         })}
       </div>
     </section>
-    <section className="panel mt-5 space-y-3 p-5 sm:p-6">
-      <h2>Condições acompanhadas pela prefeitura</h2>
-      {cycle.external.map(item => <div key={item.title}><h3 className="font-semibold">{item.title}</h3><p>{item.text}</p></div>)}
-      <OfficialLink href={cycle.inep}>Resolução CIF nº 25/2026 sobre II e III</OfficialLink>
-    </section>
-    <section className="panel mt-5 space-y-3 p-5 sm:p-6">
-      <h2>Envio e pedido de correção</h2>
-      <p>{cycle.workflow}</p>
-      <p>{cycle.diligence}</p>
-      <OfficialLink href={cycle.guide}>Guia do MEC, pp. 64–81</OfficialLink>
+    <section className="panel guidance-row mt-5" aria-label="Orientações do Simec">
+      <div className="flex items-center gap-2">Quem comprova II, III e IV
+        <Help title="Responsáveis por II, III e IV">
+          {cycle.external.map(item => <div key={item.title}><h3 className="font-semibold">{item.title}</h3><p>{item.text}</p></div>)}
+          <OfficialLink href={cycle.inep}>Resolução CIF nº 25/2026 sobre II e III</OfficialLink>
+        </Help>
+      </div>
+      <div className="flex items-center gap-2">Envio e diligência
+        <Help title="Como enviar e responder a diligências">
+          <p>{cycle.workflow}</p><p>{cycle.diligence}</p>
+          <OfficialLink href={cycle.guide}>Guia do MEC, pp. 64–81</OfficialLink>
+        </Help>
+      </div>
     </section>
   </>;
 }
