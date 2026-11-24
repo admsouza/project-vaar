@@ -7,8 +7,14 @@
   "diligence": "Se houver diligência, consulte motivo, detalhamento, orientação e prazo na aba Situação. Ajuste a condicionalidade indicada na aba Registro. A equipe finaliza o preenchimento e o secretário valida e reenvia. O art. 7º prevê 15 dias, contados do envio da comunicação ou do fim do prazo de registro, o que ocorrer depois. Sem atendimento no prazo, a rede é inabilitada na respectiva condicionalidade.",
   "workflow": "No Simec, a equipe técnica preenche a aba Registro, confere os avisos na aba Envio e finaliza o preenchimento. O secretário de Educação revisa, pode devolver para ajuste ou confirmar o Termo de Veracidade e enviar ao MEC. Acompanhe a análise na aba Situação.",
   "external": [
-    { "title": "II e III · Cálculo do Inep", "text": "O Inep calcula participação nas avaliações, redução das desigualdades e os indicadores. A prefeitura acompanha a publicação oficial." },
-    { "title": "IV · Comprovação pelo estado", "text": "O estado comprova a existência e a execução do regime de colaboração e do ICMS Educação. A situação estadual se aplica aos seus municípios." }
+    {
+      "title": "II e III · Cálculo do Inep",
+      "text": "O Inep calcula participação nas avaliações, redução das desigualdades e os indicadores. A prefeitura acompanha a publicação oficial."
+    },
+    {
+      "title": "IV · Comprovação pelo estado",
+      "text": "O estado comprova a existência e a execução do regime de colaboração e do ICMS Educação. A situação estadual se aplica aos seus municípios."
+    }
   ],
   "sections": [
     {
@@ -18,11 +24,36 @@
       "reuseLabel": "O Simec permite confirmar os dados anteriores da I e a rede conferiu que continuam válidos",
       "reuseNote": "O aproveitamento depende da habilitação anterior e da conferência no Simec. Confirme as informações elegíveis e responda às novas perguntas aplicáveis.",
       "items": [
-        {"id":"norma","record":"full","text":"Ato normativo local publicado que define a seleção por mérito e desempenho, em PDF."},
-        {"id":"edital","record":"full","text":"Edital publicado ou documento equivalente que comprove processo seletivo concluído até a data do envio, em PDF."},
-        {"id":"totais","record":"full","text":"Total de gestores em atuação e total selecionado pelos critérios exigidos. Confira a maioria e compare os números com o Censo Escolar 2025. Divergências podem gerar pedido de esclarecimento."},
-        {"id":"validade","record":"full","text":"Conferência dos PDFs oficiais: publicação anterior ao envio, identificação do ente, assinatura e elementos de autenticação aplicáveis."},
-        {"id":"confirmacao","record":"reuse","text":"Dados elegíveis confirmados e novas perguntas aplicáveis revisadas no Simec."}
+        {
+          "id": "norma",
+          "record": "full",
+          "text": "Ato normativo local publicado que define a seleção por mérito e desempenho, em PDF.",
+          "label": "Ato normativo"
+        },
+        {
+          "id": "edital",
+          "record": "full",
+          "text": "Edital publicado ou documento equivalente que comprove processo seletivo concluído até a data do envio, em PDF.",
+          "label": "Edital ou equivalente"
+        },
+        {
+          "id": "totais",
+          "record": "full",
+          "text": "Total de gestores em atuação e total selecionado pelos critérios exigidos. Confira a maioria e compare os números com o Censo Escolar 2025. Divergências podem gerar pedido de esclarecimento.",
+          "label": "Quantitativos de gestores"
+        },
+        {
+          "id": "validade",
+          "record": "full",
+          "text": "Conferência dos PDFs oficiais: publicação anterior ao envio, identificação do ente, assinatura e elementos de autenticação aplicáveis.",
+          "label": "Validade dos PDFs"
+        },
+        {
+          "id": "confirmacao",
+          "record": "reuse",
+          "text": "Dados elegíveis confirmados e novas perguntas aplicáveis revisadas no Simec.",
+          "label": "Dados e novas perguntas"
+        }
       ]
     },
     {
@@ -32,10 +63,28 @@
       "reuseLabel": "O Simec permite confirmar a documentação anterior da BNCC geral",
       "reuseNote": "A confirmação anterior se aplica à BNCC geral. O referencial de Computação e seu documento comprobatório continuam no checklist.",
       "items": [
-        {"id":"bncc","record":"full","text":"Referencial curricular alinhado à BNCC geral e ato de aprovação no sistema de ensino, em PDF. Confira se é currículo próprio ou adesão ao estadual."},
-        {"id":"confirmacao","record":"reuse","text":"Documentação anterior da BNCC geral confirmada conforme a opção disponível no Simec."},
-        {"id":"computacao","text":"Referencial alinhado à Computação na Educação Básica, complemento à BNCC, próprio ou estadual por adesão, em PDF."},
-        {"id":"aprovacao","text":"Documento que comprove a aprovação do referencial de Computação no sistema de ensino ou a adesão estadual, conforme a opção da rede. Confira as datas e as perguntas sobre educação digital e midiática no Simec."}
+        {
+          "id": "bncc",
+          "record": "full",
+          "text": "Referencial curricular alinhado à BNCC geral e ato de aprovação no sistema de ensino, em PDF. Confira se é currículo próprio ou adesão ao estadual.",
+          "label": "Currículo e ato de aprovação"
+        },
+        {
+          "id": "confirmacao",
+          "record": "reuse",
+          "text": "Documentação anterior da BNCC geral confirmada conforme a opção disponível no Simec.",
+          "label": "Documentação anterior"
+        },
+        {
+          "id": "computacao",
+          "text": "Referencial alinhado à Computação na Educação Básica, complemento à BNCC, próprio ou estadual por adesão, em PDF.",
+          "label": "Referencial de Computação"
+        },
+        {
+          "id": "aprovacao",
+          "text": "Documento que comprove a aprovação do referencial de Computação no sistema de ensino ou a adesão estadual, conforme a opção da rede. Confira as datas e as perguntas sobre educação digital e midiática no Simec.",
+          "label": "Aprovação ou adesão"
+        }
       ]
     }
   ]
